@@ -2,6 +2,10 @@ package com.auth.user.controllers;
 
 import com.auth.user.dtos.LoginRequestDto;
 import com.auth.user.dtos.SignupRequestDto;
+import com.auth.user.exceptions.EmailAlreadyExistsException;
+import com.auth.user.exceptions.PasswordNotMatchException;
+import com.auth.user.exceptions.TokenNotPresentException;
+import com.auth.user.exceptions.UserNotValidException;
 import com.auth.user.models.Token;
 import com.auth.user.models.User;
 import com.auth.user.services.UserService;
@@ -18,7 +22,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/signup")
-    public User signUp(@RequestBody SignupRequestDto signupRequestDto){
+    public User signUp(@RequestBody SignupRequestDto signupRequestDto) throws EmailAlreadyExistsException {
 
         String email = signupRequestDto.getEmail();
         String password = signupRequestDto.getPassword();
@@ -28,7 +32,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public Token signUp(@RequestBody LoginRequestDto loginRequestDto){
+    public Token signUp(@RequestBody LoginRequestDto loginRequestDto) throws PasswordNotMatchException, UserNotValidException {
 
         String email = loginRequestDto.getEmail();
         String password = loginRequestDto.getPassword();
@@ -37,8 +41,7 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestParam("token") String token){
-
+    public ResponseEntity<Void> logout(@RequestParam("token") String token) throws TokenNotPresentException {
         userService.logout(token);
         return new ResponseEntity<>(HttpStatus.OK);
     }
