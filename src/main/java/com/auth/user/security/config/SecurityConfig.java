@@ -46,7 +46,8 @@ public class SecurityConfig {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+    // for this time being we want ignore this security filter chain
+/*    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
             throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
@@ -65,6 +66,21 @@ public class SecurityConfig {
                         .jwt(Customizer.withDefaults()));
 
         return http.build();
+    }*/
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests((requests) -> {
+                            try {
+                                requests
+                                        .anyRequest().permitAll()
+                                        .and().cors().disable()
+                                        .csrf().disable();
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                );
+           return http.build();
     }
 
     /**
@@ -87,7 +103,7 @@ public class SecurityConfig {
 
         return http.build();
     }
-// not needed these code , because we already implemented using JPA
+// not needed these code , because we already implemented using JPA model and code
 //    @Bean
 //    public UserDetailsService userDetailsService() {
 //        UserDetails userDetails = User.builder()

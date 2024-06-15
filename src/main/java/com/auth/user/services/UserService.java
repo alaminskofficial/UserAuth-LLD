@@ -1,5 +1,6 @@
 package com.auth.user.services;
 
+import com.auth.user.dtos.EmailFormat;
 import com.auth.user.exceptions.EmailAlreadyExistsException;
 import com.auth.user.exceptions.PasswordNotMatchException;
 import com.auth.user.exceptions.TokenNotPresentException;
@@ -8,7 +9,10 @@ import com.auth.user.models.Token;
 import com.auth.user.models.User;
 import com.auth.user.repositories.TokenRepository;
 import com.auth.user.repositories.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +33,11 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
+    KafkaTemplate kafkaTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
+
     public User signUp(String name, String email, String password) throws EmailAlreadyExistsException {
         // skipping email verification part here.
         Optional<User> optionalUser = userRepository.findByEmail(email);
@@ -39,6 +48,12 @@ public class UserService {
         user.setEmail(email);
         user.setName(name);
         user.setHashedPassword(bCryptPasswordEncoder.encode(password));
+        // take the email id that for whom you want to send and put it in the kafka queue.
+        try {
+            kafkaTemplate.send("sendEmail", objectMapper.writeValueAsString(getMessage(user)));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         return userRepository.save(user);
     }
@@ -87,5 +102,14 @@ public class UserService {
                 tokenRepository.findByValueAndIsDeletedEqualsAndExpirydateGreaterThan(
                 token, false, new Date());
         return tokenOptional.isPresent();
+    }
+    private EmailFormat getMessage(User user) {
+        EmailFormat message = new EmailFormat();
+        message.setTo(user.getEmail());
+        message.setContent("Successfully signed up");
+        message.setSubject("Sign up success ");
+        message.setFrom("alamindemo@gmail.com");
+
+        return message;
     }
 }
