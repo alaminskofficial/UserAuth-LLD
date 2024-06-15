@@ -108,7 +108,7 @@ public class UserService {
         message.setTo(user.getEmail());
         message.setContent("Successfully signed up");
         message.setSubject("Sign up success ");
-        message.setFrom("alamindemo@gmail.com");
+        message.setFrom("alamindemo@gmail.com");// this is the email id from which you want to send the email
 
         return message;
     }
