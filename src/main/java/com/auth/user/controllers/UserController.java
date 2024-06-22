@@ -21,6 +21,12 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @GetMapping("/user")
+    public String doSomething(){
+        System.out.println("request received at user service");
+        return "Hello, From User service";
+    }
+
     @PostMapping("/signup")
     public User signUp(@RequestBody SignupRequestDto signupRequestDto) throws EmailAlreadyExistsException {
 
